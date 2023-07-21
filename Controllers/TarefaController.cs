@@ -1,4 +1,7 @@
-﻿using api_to_do.Models;
+﻿using api_to_do.Dto.Request;
+using api_to_do.Dto.Response;
+using api_to_do.Models;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 
 
@@ -10,28 +13,67 @@ public class TarefaController : ControllerBase
 {
     private static List<Tarefa> tarefas = new List<Tarefa>();
     private static int id = 0;
+    private IMapper _mapper;
+
+    public TarefaController(IMapper mapper)
+    {
+        _mapper = mapper;
+    }
 
     [HttpPost]
-    public IActionResult CreateTask([FromBody] Tarefa tarefa)
+    public IActionResult CreateTask([FromBody] CreateTarefaDto tarefaDto)
     {
+        Tarefa tarefa = _mapper.Map<Tarefa>(tarefaDto);
         tarefa.Id = id++;
         tarefas.Add(tarefa);
+
+        ReadTarefaDto tarefaResponse = _mapper.Map<ReadTarefaDto>(tarefa);
         return CreatedAtAction(nameof(GetTarefaById), 
-            new { id = tarefa.Id }, 
-            tarefa);
+            new { id = tarefaResponse.Id },
+            tarefaResponse);
     }
 
     [HttpGet]
-    public IEnumerable<Tarefa> GetTarefaPage([FromQuery] int skip=0, [FromQuery] int take=50)
+    public IEnumerable<ReadTarefaDto> GetTarefaPage([FromQuery] int skip=0, [FromQuery] int take=50)
     {
-        return tarefas.Skip(skip).Take(take);
+        List<ReadTarefaDto> tarefaResponse = _mapper.Map<List<ReadTarefaDto>>(tarefas);
+        return tarefaResponse.Skip(skip).Take(take);
     }
 
     [HttpGet("{id}")]
     public IActionResult GetTarefaById(int id) { 
         var tarefa = tarefas.FirstOrDefault(tarefa =>  tarefa.Id == id);
         if (tarefa == null) return NotFound();
+
+        ReadTarefaDto tarefaResponse = _mapper.Map<ReadTarefaDto>(tarefa);
+        return Ok(tarefaResponse);
+    }
+
+    [HttpPut("{id}")]
+    public IActionResult UpdateTarefa(int id, [FromBody] UpdateTarefaDto tarefaDto)
+    {
+        var tarefa = tarefas.FirstOrDefault(tarefa => tarefa.Id == id);
+        if (tarefa == null) return NotFound();
+
+        var tarefaAtualizada = _mapper.Map<Tarefa>(tarefaDto);
+        tarefa = tarefaAtualizada;
+
         return Ok(tarefa);
+    }
+
+    //public static void Update<TSource>(this IEnumerable<TSource> outer, Action<TSource> updator)
+    //{
+    //    foreach (var item in outer)
+    //    {
+    //        updator(item);
+    //    }
+    //}
+
+    //list.Where(w => w.Name == "height").ToList().Update(u => u.height = 30);
+
+    public static void UpdateLista()
+    {
+
     }
 
     [HttpDelete("{id}")]
