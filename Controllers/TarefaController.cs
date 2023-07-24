@@ -4,7 +4,6 @@ using api_to_do.Models;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 
-
 namespace api_to_do.Controllers;
 
 [ApiController]
@@ -52,28 +51,20 @@ public class TarefaController : ControllerBase
     [HttpPut("{id}")]
     public IActionResult UpdateTarefa(int id, [FromBody] UpdateTarefaDto tarefaDto)
     {
-        var tarefa = tarefas.FirstOrDefault(tarefa => tarefa.Id == id);
-        if (tarefa == null) return NotFound();
+        int index = tarefas.IndexOf(tarefas.FirstOrDefault(tarefa => tarefa.Id == id));
+        if (index == -1) return NotFound();
+        var tarefaAtualizada = AtualizaTarefa(index, tarefaDto);
 
-        var tarefaAtualizada = _mapper.Map<Tarefa>(tarefaDto);
-        tarefa = tarefaAtualizada;
-
-        return Ok(tarefa);
+        ReadTarefaDto tarefaResponse = _mapper.Map<ReadTarefaDto>(tarefaAtualizada);
+        return Ok(tarefaResponse);
     }
 
-    //public static void Update<TSource>(this IEnumerable<TSource> outer, Action<TSource> updator)
-    //{
-    //    foreach (var item in outer)
-    //    {
-    //        updator(item);
-    //    }
-    //}
-
-    //list.Where(w => w.Name == "height").ToList().Update(u => u.height = 30);
-
-    public static void UpdateLista()
+    private Tarefa AtualizaTarefa(int index, UpdateTarefaDto tarefaDto)
     {
-
+        if(tarefaDto.Title != null) tarefas[index].Title = tarefaDto.Title;
+        if (tarefaDto.Description != null) tarefas[index].Description = tarefaDto.Description;
+        if (tarefaDto.State != null) tarefas[index].State = tarefaDto.State;
+        return tarefas[index];
     }
 
     [HttpDelete("{id}")]
@@ -82,6 +73,5 @@ public class TarefaController : ControllerBase
         if (tarefa == null) return NotFound();
         tarefas.Remove(tarefa);
         return NoContent();
-
     }
 }
