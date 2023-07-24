@@ -48,6 +48,18 @@ public class TarefaController : ControllerBase
         return Ok(tarefaResponse);
     }
 
+    [HttpGet("state/{state}")]
+    public IActionResult GetTarefaByState(string state)
+    {
+        List<Tarefa> tarefasState = tarefas.Where(tarefa => tarefa.State == state).ToList();
+        Console.WriteLine(tarefasState);
+        if (tarefasState == null) return NotFound();
+
+        List<ReadTarefaDto> tarefaResponse = _mapper.Map<List<ReadTarefaDto>>(tarefasState);
+        return Ok(tarefaResponse);
+    }
+
+
     [HttpPut("{id}")]
     public IActionResult UpdateTarefa(int id, [FromBody] UpdateTarefaDto tarefaDto)
     {
